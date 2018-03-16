@@ -4,14 +4,24 @@
 
 Add your answers inline, below, with your pull request.
 
-1. List all of the main states a process may be in at any point in time on a
-   standard Unix system. Briefly explain what each of these states mean.
+1.  List all of the main states a process may be in at any point in time on a
+    standard Unix system. Briefly explain what each of these states mean.
 
-2. What is a Zombie Process? How does it get created? How does it get destroyed?
+    Created State, also called new, is when a process if first created. It waits on the scheduler to give permission to the next state which is the Ready state. This is when the process has been loaded into main memory and is awaiting execution on the CPU. The next state is Running. This is when a process is chosen for execution and the instructions are execute by the CPU. The Blocked state is when the process can't carry on without and external change or event occurring. This could be reading from a drive, internet data, or user input from the keyboard or mouse. The final primary state is terminated. This state occurs when the process has either completed its execution or has been "killed" by the OS or user.
 
-3. Describe the job of the Scheduler in the OS in general.
+2.  What is a Zombie Process? How does it get created? How does it get destroyed?
 
-4. Describe the benefits of the MLFQ over a plain Round-Robin scheduler.
+    A zombie process is a process that has completed execution but still has an entry in the process table. It's created when the parent process of the child still needs to read the exit status of the child. Once the parent reads the exit status the zombie process is removed from the process table.
+
+3.  Describe the job of the Scheduler in the OS in general.
+
+The job of the scheduler is to prioritize resources for different processes and tasks based on time and priority. It handles prioritized queues that are awaiting CPU time and loads them into memory for scheduling.
+
+4.  Describe the benefits of the MLFQ over a plain Round-Robin scheduler.
+
+Round Robin gives all the processes and equal amount of time. Just going from one process to the next until the process is finished executing or that set amount of time is up. All processes get equal amount of time no matter how big they are or how long they have been in the system. This equals out response time, but throughput suffers.
+
+MLFQ or Multi Level Feedback Queue is a much better system. It has a set of rules that puts all new processes at the largest queue. Then based on priorty queue, time, and if the state has changed to blocking or non blocking, moves the processes down in priority, or up or stay the same. This allows response time and throughput to be at the maximum giving dynamically changing priorities.
 
 ## Programming Exercise: The Lambda School Shell (`lssh`)
 
@@ -21,7 +31,7 @@ Unix, similar to bash!
 At the end of the day, you should be able to run your shell, the run commands within it like so:
 
 ```
-[bash]$ ./lssh 
+[bash]$ ./lssh
 lambda-shell$ ls -l
 total 32
 -rwxr-xr-x  1 beej  staff  9108 Mar 15 13:28 lssh
@@ -38,7 +48,7 @@ lambda-shell$ head lssh.c
 #define COMMANDLINE_BUFSIZE 1024
 #define DEBUG 0  // Set to 1 to turn on some debugging output
 lambda-shell$ exit
-[bash]$ 
+[bash]$
 ```
 
 General attack is to:
@@ -107,19 +117,19 @@ lambda-shell$ pwd
 /Users/example
 lambda-shell$ cd foobar
 chdir: No such file or directory
-lambda-shell$ 
+lambda-shell$
 ```
 
 If the user entered `cd` as the first argument:
 
-1. Check to make sure they've entered 2 total arguments
-2. Run the system call `chdir()` on the second argument to change directories
-3. Error check the result of `chdir()`. If it returns `-1`, meaning an error
-   occurred, you can print out an error message with:
-   ```
-   perror("chdir"); // #include <errno.h> to use this
-   ```
-4. Execute a `continue` statement to short-circuit the rest of the main loop.
+1.  Check to make sure they've entered 2 total arguments
+2.  Run the system call `chdir()` on the second argument to change directories
+3.  Error check the result of `chdir()`. If it returns `-1`, meaning an error
+    occurred, you can print out an error message with:
+    ```
+    perror("chdir"); // #include <errno.h> to use this
+    ```
+4.  Execute a `continue` statement to short-circuit the rest of the main loop.
 
 Note that `.` and `..` are actual directories. You don't need to write any
 special case code to handle them.
@@ -138,16 +148,15 @@ an `&`.
 
 If it is:
 
-1. Strip the `&` off the `args` (by setting that pointer to `NULL`).
-2. Run the command in the child as usual.
-3. Prevent the parent from `wait()`ing for the child to complete. Just give a
-   new prompt immediately. The child will continue to run in the background.
+1.  Strip the `&` off the `args` (by setting that pointer to `NULL`).
+2.  Run the command in the child as usual.
+3.  Prevent the parent from `wait()`ing for the child to complete. Just give a
+    new prompt immediately. The child will continue to run in the background.
 
 Note that you might get weird output when doing this, like the prompt might
 appear before the program completes, or not at all if the program's output
 overwrites it. If it looks like it hangs at the end, just hit `RETURN` to get
 another prompt back.
-
 
 ### Extra Credit: File Redirection
 
@@ -161,28 +170,30 @@ ls -l > foo.txt
 
 Check the `args` array for a `>`. If it's there:
 
-1. Get the output file name from the next element in `args`.
-2. Strip everything out of `args` from the `>` on. (Set the `args` element with
-   the `>` in it to `NULL`).
-3. In the child process:
-    1. `open()` the file for output. Store the resultant file descriptor in a
-       variable `fd`.
-    2. Use the `dup2()` system call to make `stdout` (file descriptor `1`) refer
-       to the newly-opened file instead:
+1.  Get the output file name from the next element in `args`.
+2.  Strip everything out of `args` from the `>` on. (Set the `args` element with
+    the `>` in it to `NULL`).
+3.  In the child process:
 
-	    ```c
-		int fd = open(...
-		dup2(fd, 1);  // Now stdout goes to the file instead
-		```
-	3. `exec` the program like normal.
+    1.  `open()` the file for output. Store the resultant file descriptor in a
+        variable `fd`.
+    2.  Use the `dup2()` system call to make `stdout` (file descriptor `1`) refer
+        to the newly-opened file instead:
+
+        ````c
+        		int fd = open(...
+        		dup2(fd, 1);  // Now stdout goes to the file instead
+        		```
+        ````
+
+    3.  `exec` the program like normal.
 
 ### Extra Credit: Pipes
 
 In bash, you can pipe the output of one command into the input of another with
 the `|` symbol.
 
-For example, this takes the output of `ls -l` and uses it as the input for `wc
--l` (which counts the number of lines in the input):
+For example, this takes the output of `ls -l` and uses it as the input for `wc -l` (which counts the number of lines in the input):
 
 ```
 ls -l | wc -l
